@@ -39,9 +39,10 @@ printf '%s' "$token" | docker login ghcr.io -u "$user" --password-stdin >/dev/nu
 unset token
 
 img=$REGISTRY/point-encoder-bundle:$version
-docker pull --quiet "$img" >/dev/null
+# bundle 由 .64(amd64)build、只裝檔案不會執行;指定平台,arm64 機器才不會出現平台不符的警告
+docker pull --quiet --platform linux/amd64 "$img" >/dev/null
 tmp=$(mktemp -d)
-cid=$(docker create "$img" /none)
+cid=$(docker create --platform linux/amd64 "$img" /none)
 docker cp "$cid:/bundle/." "$tmp/"
 docker rm "$cid" >/dev/null
 ver=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["version"])' "$tmp/release.json")
